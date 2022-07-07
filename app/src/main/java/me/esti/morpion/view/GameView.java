@@ -8,19 +8,21 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Display;
+import android.util.Pair;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class GameView extends View {
-    int gameW = 5;
+    int gameW = 4;
     String CLASS_NAME = this.getClass().getName();
-    int[][] matrice = new int[gameW][gameW];
+    Integer[][] matrice = new Integer[gameW][gameW];
+    int turn = 1;
+    int width;
     Paint paint = new Paint();
+    Boolean hasWinner = false;
+    Integer winner = null;
 
     public GameView(Context context) {
         super(context);
@@ -33,25 +35,138 @@ public class GameView extends View {
         paint.setStrokeWidth(2);
     }
 
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         for (int i = 0; i < matrice.length; i++) {
-            int[] row = matrice[i];
+            Integer[] row = matrice[i];
             for (int j = 0; j < row.length; j++) {
                 Point size = new Point();
                 getDisplay().getSize(size);
-                int width = size.x / gameW;
-
-                int item = row[j];
-                Log.d(CLASS_NAME, String.format("Matrice[%o][%o]: %o", i, j, item));
+                width = size.x / gameW;
+                Integer item = row[j];
+                paint.setColor(Color.BLACK);
+                // Log.d(CLASS_NAME, String.format("Matrice[%o][%o]: %o", i, j, item));
                 int posX = (j) * width;
-                int posY = (i + 1) * width;
-                Rect rect = new Rect(posX, posY, posX + width, posY + width);
+                int posY = (i) * width;
+                Rect rect = new Rect(posX + 5, posY + 5, posX + width - 5, posY + width - 5);
                 canvas.drawRect(rect, paint);
+                if (item != null) {
+                    paint.setColor(item == 1 ? Color.GREEN : Color.RED);
+                    paint.setTextSize(width);
+                    canvas.drawText(item == 1 ? "x" : "o", posX + (width / 4), posY + width - (width / 6), paint);
+                }
             }
+        }
+        for (int i = 0; i < matrice.length; i++) {
+            Pair<Boolean, Integer> rowState = this.rowWin(i);
+            Pair<Boolean, Integer> colState = this.colWin(i);
+            if (rowState.first) {
+                hasWinner = true;
+                winner = rowState.second;
+                // 0 , i * width
+                // width * gameW , i * width
+                paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
+                canvas.drawLine(width / 6, i * width + (width / 2), width * gameW - width / 6, i * width + (width / 2), paint);
+            }
+            if (colState.first) {
+                hasWinner = true;
+                winner = colState.second;
+                paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
+                canvas.drawLine(i * width + (width / 2), width / 6, i * width + (width / 2), width * 4 - width / 6, paint);
+            }
+        }
+        Pair<Boolean, Integer> diagState = this.diagWin();
+        Pair<Boolean, Integer> diagIState = this.diagWinInverted();
+
+        if (diagState.first) {
+            hasWinner = true;
+            winner = diagState.second;
+            // 0 , 0
+            // width * gameW , width * gameW
+            paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
+            canvas.drawLine(width / 6, width / 6, width * gameW - width / 6, width * gameW - width / 6, paint);
+        }
+        if (diagIState.first) {
+            hasWinner = true;
+            winner = diagIState.second;
+            // width * gameW , 0
+            // 0 , width * gameW
+            paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
+            canvas.drawLine(width * gameW - width / 6, width / 6, width / 6, width * gameW - width / 6, paint);
+        }
+
+        if (hasWinner && winner != null) {
+            String textWin = "User " + winner.toString() + " gagne!!";
+            paint.setTextSize(70);
+            canvas.drawText(textWin, 0, width * (gameW + 1), paint);
         }
     }
 
+    public Pair<Integer, Integer> getTouchPosition(int touchX, int touchY) {
+        return new Pair<>(touchY / width, touchX / width);
+    }
 
+    public Pair<Boolean, Integer> rowWin(int rowIndex) {
+        Integer lastElements = matrice[rowIndex][0];
+        for (int i = 1; i < matrice[rowIndex].length; i++) {
+            if (lastElements == null || matrice[rowIndex][i] == null || !lastElements.equals(matrice[rowIndex][i])) {
+                return new Pair<>(false, 0);
+            }
+        }
+        return new Pair<>(true, lastElements);
+    }
+
+    public Pair<Boolean, Integer> colWin(int colIndex) {
+        Integer lastElements = matrice[0][colIndex];
+        for (int i = 1; i < matrice.length; i++) {
+            if (lastElements == null || matrice[i][colIndex] == null || !lastElements.equals(matrice[i][colIndex])) {
+                return new Pair<>(false, 0);
+            }
+        }
+        return new Pair<>(true, lastElements);
+    }
+
+    public Pair<Boolean, Integer> diagWin() {
+        Integer lastElements = matrice[0][0];
+        for (int i = 1; i < matrice.length; i++) {
+            if (lastElements == null || matrice[i][i] == null || !lastElements.equals(matrice[i][i])) {
+                return new Pair<>(false, 0);
+            }
+        }
+        return new Pair<>(true, lastElements);
+    }
+
+    public Pair<Boolean, Integer> diagWinInverted() {
+        Integer lastElements = matrice[0][matrice.length - 1];
+        for (int i = 1; i < matrice.length; i++) {
+            if (lastElements == null || matrice[i][matrice.length - i - 1] == null || !lastElements.equals(matrice[i][matrice.length - i - 1])) {
+                return new Pair<>(false, 0);
+            }
+        }
+        return new Pair<>(true, lastElements);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int touchX = (int) event.getX();
+        int touchY = (int) event.getY();
+        if (event.getAction() == MotionEvent.ACTION_UP && touchY < width * gameW) {
+            Pair<Integer, Integer> pos = getTouchPosition(touchX, touchY);
+            if (matrice[pos.first][pos.second] != null || hasWinner) {
+                return true;
+            }
+            matrice[pos.first][pos.second] = turn;
+            if (turn == 1) {
+                turn = 2;
+            } else {
+                turn = 1;
+            }
+            this.invalidate();
+        }
+
+
+        return true;
+    }
 }
