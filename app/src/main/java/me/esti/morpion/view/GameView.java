@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
@@ -23,6 +22,7 @@ public class GameView extends View {
     Paint paint = new Paint();
     Boolean hasWinner = false;
     Integer winner = null;
+    Pair<Integer, Integer> pos = new Pair<>(-1, -1);
 
     public GameView(Context context) {
         super(context);
@@ -59,35 +59,54 @@ public class GameView extends View {
                 }
             }
         }
-        for (int i = 0; i < matrice.length; i++) {
-            Pair<Boolean, Integer> rowState = this.rowWin(i);
-            Pair<Boolean, Integer> colState = this.colWin(i);
-            if (rowState.first) {
-                hasWinner = true;
-                winner = rowState.second;
-                // 0 , i * width
-                // width * gameW , i * width
-                paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
-                canvas.drawLine(width / 6, i * width + (width / 2), width * gameW - width / 6, i * width + (width / 2), paint);
+        if (pos.first != -1 && pos.second != -1) {
+            int row = pos.first;
+            int col = pos.second;
+            if (row == col) {
+                if (drawDiagonalWin(canvas)) return;
             }
-            if (colState.first) {
-                hasWinner = true;
-                winner = colState.second;
-                paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
-                canvas.drawLine(i * width + (width / 2), width / 6, i * width + (width / 2), width * 4 - width / 6, paint);
+            if (row + col == matrice.length) {
+                if (drawInvertedDiagonalWin(canvas)) return;
             }
-        }
-        Pair<Boolean, Integer> diagState = this.diagWin();
-        Pair<Boolean, Integer> diagIState = this.diagWinInverted();
+            if (drawRowWin(canvas, row)) return;
 
-        if (diagState.first) {
-            hasWinner = true;
-            winner = diagState.second;
-            // 0 , 0
-            // width * gameW , width * gameW
-            paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
-            canvas.drawLine(width / 6, width / 6, width * gameW - width / 6, width * gameW - width / 6, paint);
+            if (drawColumnWin(canvas, col)) return;
         }
+        if (hasWinner && winner != null) {
+            String textWin = "User " + winner.toString() + " gagne!!";
+            paint.setTextSize(70);
+            canvas.drawText(textWin, 0, width * (gameW + 1), paint);
+        }
+    }
+
+    private boolean drawColumnWin(Canvas canvas, int col) {
+        Pair<Boolean, Integer> colState = this.colWin(col);
+        if (colState.first) {
+            hasWinner = true;
+            winner = colState.second;
+            paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
+            canvas.drawLine(col * width + (width / 2), width / 6, col * width + (width / 2), width * 4 - width / 6, paint);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean drawRowWin(Canvas canvas, int row) {
+        Pair<Boolean, Integer> rowState = this.rowWin(row);
+        if (rowState.first) {
+            hasWinner = true;
+            winner = rowState.second;
+            // 0 , i * width
+            // width * gameW , i * width
+            paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
+            canvas.drawLine(width / 6, row * width + (width / 2), width * gameW - width / 6, row * width + (width / 2), paint);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean drawInvertedDiagonalWin(Canvas canvas) {
+        Pair<Boolean, Integer> diagIState = this.diagWinInverted();
         if (diagIState.first) {
             hasWinner = true;
             winner = diagIState.second;
@@ -95,13 +114,23 @@ public class GameView extends View {
             // 0 , width * gameW
             paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
             canvas.drawLine(width * gameW - width / 6, width / 6, width / 6, width * gameW - width / 6, paint);
+            return true;
         }
+        return false;
+    }
 
-        if (hasWinner && winner != null) {
-            String textWin = "User " + winner.toString() + " gagne!!";
-            paint.setTextSize(70);
-            canvas.drawText(textWin, 0, width * (gameW + 1), paint);
+    private boolean drawDiagonalWin(Canvas canvas) {
+        Pair<Boolean, Integer> diagState = this.diagWin();
+        if (diagState.first) {
+            hasWinner = true;
+            winner = diagState.second;
+            // 0 , 0
+            // width * gameW , width * gameW
+            paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
+            canvas.drawLine(width / 6, width / 6, width * gameW - width / 6, width * gameW - width / 6, paint);
+            return true;
         }
+        return false;
     }
 
     public Pair<Integer, Integer> getTouchPosition(int touchX, int touchY) {
@@ -153,7 +182,7 @@ public class GameView extends View {
         int touchX = (int) event.getX();
         int touchY = (int) event.getY();
         if (event.getAction() == MotionEvent.ACTION_UP && touchY < width * gameW) {
-            Pair<Integer, Integer> pos = getTouchPosition(touchX, touchY);
+            pos = getTouchPosition(touchX, touchY);
             if (matrice[pos.first][pos.second] != null || hasWinner) {
                 return true;
             }
