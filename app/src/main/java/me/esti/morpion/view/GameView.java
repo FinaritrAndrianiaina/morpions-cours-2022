@@ -15,7 +15,13 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 public class GameView extends View {
-    int gameW = 4;
+    private  int gameW = 2;
+
+    public void setGameW(int gameW) {
+        this.gameW = gameW;
+        matrice = new Integer[gameW][gameW];
+    }
+
     String CLASS_NAME = this.getClass().getName();
     Integer[][] matrice = new Integer[gameW][gameW];
     int turn = 1;
@@ -24,15 +30,23 @@ public class GameView extends View {
     Boolean hasWinner = false;
     Integer winner = null;
 
+    public void reinitialise(){
+        matrice = new Integer[gameW][gameW];
+        paint = new Paint();
+        hasWinner = false;
+        winner = null;
+        turn = 1;
+        invalidate();
+
+    }
+
     public GameView(Context context) {
         super(context);
     }
 
     public GameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        paint.setColor(Color.BLACK);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(2);
+
     }
 
 
