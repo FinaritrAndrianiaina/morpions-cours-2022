@@ -3,9 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/manda/M1/morpions-cours-2022/app/src/main/res/layout/activity_acceuil.xml" value="0.2" />
-        <entry key="..\:/manda/M1/morpions-cours-2022/app/src/main/res/layout/activity_main.xml" value="0.152" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.175" />
+        <entry key="app/src/main/res/layout/activity_acceuil.xml" value="0.34739583333333335" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.35" />
       </map>
     </option>
   </component>

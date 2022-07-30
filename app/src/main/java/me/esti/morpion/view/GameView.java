@@ -6,47 +6,114 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
+import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.LogPrinter;
+import android.util.Range;
+import android.util.MutableBoolean;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.databinding.ObservableBoolean;
+import androidx.databinding.ObservableInt;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 public class GameView extends View {
-    private  int gameW = 2;
+    public static final int VS_IA = 0;
+    public static final int VS_USER = 1;
+    private int gameW = 2;
+    public int mode;
 
+    public int getMode() {
+        return mode;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void setGameW(int gameW) {
         this.gameW = gameW;
         matrice = new Integer[gameW][gameW];
+        this.initSetOfMove();
     }
 
-    String CLASS_NAME = this.getClass().getName();
+    Logger log = Logger.getLogger(this.getClass().getName());
     Integer[][] matrice = new Integer[gameW][gameW];
-    int turn = 1;
+    Set<Pair<Integer, Integer>> setOfMove = new HashSet<>();
+
+    public ObservableBoolean getHasWinner() {
+        return hasWinner;
+    }
+
+    ObservableInt turn = new ObservableInt(1);
+
+    public ObservableInt getTurn() {
+        return turn;
+    }
+
     int width;
-    Paint paint = new Paint();
-    Boolean hasWinner = false;
+    Paint paint;
+    ObservableBoolean hasWinner = new ObservableBoolean(false);
     Integer winner = null;
+
+    public Integer getWinner() {
+        return winner;
+    }
+
     Pair<Integer, Integer> pos = new Pair<>(-1, -1);
 
-    public void reinitialise(){
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void reinitialise() {
         matrice = new Integer[gameW][gameW];
-        paint = new Paint();
-        hasWinner = false;
+        this.initPaint();
+        hasWinner.set(false);
         winner = null;
-        turn = 1;
+        this.initSetOfMove();
+        turn.set(1);
         invalidate();
 
+    }
+
+    public void initPaint() {
+        paint = new Paint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(5);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void initSetOfMove() {
+        int[] range = IntStream.range(0, gameW).toArray();
+        for (int i : range) {
+            for (int j : range) {
+                log.info(String.format("%d %d", i, j));
+                setOfMove.add(new Pair<>(i, j));
+            }
+        }
     }
 
     public GameView(Context context) {
         super(context);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public GameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-
+        this.initPaint();
     }
 
 
@@ -79,27 +146,22 @@ public class GameView extends View {
             if (row == col) {
                 if (drawDiagonalWin(canvas)) return;
             }
-            if (row + col == matrice.length) {
+            if (row + col == matrice.length - 1) {
                 if (drawInvertedDiagonalWin(canvas)) return;
             }
             if (drawRowWin(canvas, row)) return;
 
             if (drawColumnWin(canvas, col)) return;
         }
-        if (hasWinner && winner != null) {
-            String textWin = "User " + winner.toString() + " gagne!!";
-            paint.setTextSize(70);
-            canvas.drawText(textWin, 0, width * (gameW + 1), paint);
-        }
     }
 
     private boolean drawColumnWin(Canvas canvas, int col) {
         Pair<Boolean, Integer> colState = this.colWin(col);
         if (colState.first) {
-            hasWinner = true;
             winner = colState.second;
+            hasWinner.set(true);
             paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
-            canvas.drawLine(col * width + (width / 2), width / 6, col * width + (width / 2), width * 4 - width / 6, paint);
+            canvas.drawLine(col * width + (width / 2), width / 6, col * width + (width / 2), width * gameW - width / 6, paint);
             return true;
         }
         return false;
@@ -108,8 +170,8 @@ public class GameView extends View {
     private boolean drawRowWin(Canvas canvas, int row) {
         Pair<Boolean, Integer> rowState = this.rowWin(row);
         if (rowState.first) {
-            hasWinner = true;
             winner = rowState.second;
+            hasWinner.set(true);
             // 0 , i * width
             // width * gameW , i * width
             paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
@@ -122,8 +184,8 @@ public class GameView extends View {
     private boolean drawInvertedDiagonalWin(Canvas canvas) {
         Pair<Boolean, Integer> diagIState = this.diagWinInverted();
         if (diagIState.first) {
-            hasWinner = true;
             winner = diagIState.second;
+            hasWinner.set(true);
             // width * gameW , 0
             // 0 , width * gameW
             paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
@@ -136,8 +198,8 @@ public class GameView extends View {
     private boolean drawDiagonalWin(Canvas canvas) {
         Pair<Boolean, Integer> diagState = this.diagWin();
         if (diagState.first) {
-            hasWinner = true;
             winner = diagState.second;
+            hasWinner.set(true);
             // 0 , 0
             // width * gameW , width * gameW
             paint.setColor(winner == 1 ? Color.GREEN : Color.RED);
@@ -178,6 +240,7 @@ public class GameView extends View {
                 return new Pair<>(false, 0);
             }
         }
+        setOfMove.clear();
         return new Pair<>(true, lastElements);
     }
 
@@ -197,19 +260,39 @@ public class GameView extends View {
         int touchY = (int) event.getY();
         if (event.getAction() == MotionEvent.ACTION_UP && touchY < width * gameW) {
             pos = getTouchPosition(touchX, touchY);
-            if (matrice[pos.first][pos.second] != null || hasWinner) {
+            if (matrice[pos.first][pos.second] != null || hasWinner.get() || (GameView.VS_IA == mode && turn.get() == 2)) {
                 return true;
             }
-            matrice[pos.first][pos.second] = turn;
-            if (turn == 1) {
-                turn = 2;
-            } else {
-                turn = 1;
-            }
+            setOfMove.remove(pos);
+            matrice[pos.first][pos.second] = turn.get();
             this.invalidate();
+            if (turn.get() == 1) {
+                turn.set(2);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mode == GameView.VS_IA && setOfMove.size() > 0 && !hasWinner.get()) {
+                            pos = getTouchFromIa();
+                            matrice[pos.first][pos.second] = turn.get();
+                            turn.set(1);
+                            invalidate();
+                        }
+                    }
+                }, 50);
+            } else {
+                turn.set(1);
+            }
         }
-
-
         return true;
+    }
+
+    private Pair<Integer, Integer> getTouchFromIa() {
+        Random random = new Random();
+        List<Pair<Integer, Integer>> arrayOfMove = new ArrayList<>(setOfMove);
+        int randomNumber = random.nextInt(arrayOfMove.size());
+        Pair<Integer, Integer> item = arrayOfMove.get(randomNumber);
+        this.log.info(item.toString());
+        setOfMove.remove(item);
+        return item;
     }
 }

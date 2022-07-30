@@ -11,60 +11,45 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:layout_editor_absoluteX="411dp"
-        >
+        tools:layout_editor_absoluteX="411dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="25dp"
+            android:layout_margin="3dp"
             android:orientation="horizontal">
 
 
             <Button
                 android:id="@+id/retour"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:backgroundTint="#9A9999"
                 android:onClick="retourPartie"
                 android:text="retour"
-                app:icon="@drawable/ic_action_retour"
-                app:rippleColor="#B1AEAE" />
+                app:icon="@drawable/ic_action_retour" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
             <Button
                 android:id="@+id/button3"
-                android:layout_width="wrap_content"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="50dp"
                 android:layout_weight="1"
-                android:backgroundTint="#9A9999"
                 android:onClick="newPartie"
                 android:text="nouvelle partie"
-                app:icon="@drawable/ic_action_nouveau"
-                app:strokeColor="#9C9999" />
+                android:textAlignment="center"
+                app:icon="@drawable/ic_action_nouveau" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/textView11"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="tour : Player 1" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
             android:orientation="horizontal">
 
             <TextView
@@ -72,14 +57,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="0" />
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Player 1 " />
+                android:text="X Joueur 1"
+                android:textAlignment="center"
+                android:textColor="#FF0000"
+                android:textStyle="bold" />
 
             <Space
                 android:layout_width="wrap_content"
@@ -87,52 +68,53 @@
                 android:layout_weight="1" />
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/countDisplay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="0" />
-
-            <TextView
-                android:id="@+id/textView5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="vs" />
-
-            <TextView
-                android:id="@+id/textView6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="0" />
+                android:text="0 VS 0"
+                android:textAlignment="center" />
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/textView8"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_weight="1"
-                android:text="0" />
 
             <TextView
                 android:id="@+id/textView9"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="player 2" />
+                android:text="O Joueur 2"
+                android:textAlignment="center"
+                android:textColor="#1B7D00"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <me.esti.morpion.view.GameView
+            android:layout_marginVertical="20dp"
             android:id="@+id/gameView"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="10dp"
             tools:ignore="MissingConstraints" />
+
+        <TextView
+            android:id="@+id/turnDisplay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            android:gravity="center_horizontal"
+            android:text="Tour : Joueur 1" />
+
+        <TextView
+            android:id="@+id/winDisplay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:textSize="30dp"
+            />
 
     </LinearLayout>
 
